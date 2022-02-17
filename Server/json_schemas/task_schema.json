@@ -54,6 +54,10 @@
           "$ref": "./user_schema.json#"
       }
     },
+    "completers": {
+      "type": "integer",
+      "description": "number of users that have to complete the task in order to set the completed status flag of the entire task to true"
+    },
     "self": {
       "type": "string",
       "format": "uri-reference",

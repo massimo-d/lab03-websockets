@@ -333,10 +333,10 @@ exports.updateSingleTask = function(task, taskId, owner) {
  * - taskID: the ID of the task to be completed
  * - assignee: the ID of the user who wants to complete the task
  * Output:
- * - no response expected for this operation
+ * - null
  * 
  **/
- exports.completeTask = function(taskId, assignee) {
+ exports.completeUserTask = function(taskId, assignee) {
     return new Promise((resolve, reject) => {
         const sql1 = "SELECT * FROM tasks t WHERE t.id = ?";
         db.all(sql1, [taskId], (err, rows) => {
@@ -345,25 +345,62 @@ exports.updateSingleTask = function(task, taskId, owner) {
             else if (rows.length === 0)
                 reject(404);
             else {
-                const sql2 = "SELECT * FROM assignments a WHERE a.user = ? AND a.task = ?";
+                const sql2 = "UPDATE assignements SET completed = 1 a WHERE a.user = ? AND a.task = ?";
                 db.all(sql2, [assignee, taskId], (err, rows2) => {
                     if (err)
                         reject(err);
                     else if (rows2.length === 0)
                         reject(403);
                     else {
-                        const sql3 = 'UPDATE tasks SET completed = 1 WHERE id = ?';
-                        db.run(sql3, [taskId], function(err) {
-                            if (err) {
+
+                        const sql3 = 'SELECT COUNT(*) as tot FROM assignements WHERE taskId = ? AND completed = 1';
+                        db.get(sql3, [taskId],(err, size) => {
+                            if (err)
                                 reject(err);
-                            } else {
-                                resolve(null);
+                            // if number of completers is the one expected, set the status flag of the task to completed
+                            else if(rows[0].completers === size.tot){
+                                const sql4 = 'UPDATE tasks SET completed = 1 WHERE id = ?';
+                                db.run(sql4, [taskId], function(err) {
+                                if (err) {
+                                    reject(err);
+                                } else {
+                                    resolve(null);
+                                }
+                                });
                             }
                         })
-                    }
-                })
-            } 
+                    } 
             
+                });
+            }
+        });
+    });
+}
+
+/**/
+exports.getCompleters = function(taskId, owner){
+    return new Promise((resolve, reject) => {
+
+        const sql1 = "SELECT owner, completers FROM tasks t WHERE t.id = ?";
+        db.all(sql1, [taskId], (err, rows) => {
+            if (err)
+                reject(err);
+            else if (rows.length === 0)
+                reject(404);
+            else if(owner != rows[0].owner) {
+                reject(403);
+            }
+            else {
+                const sql2 = "SELECT u.id as uid, u.name, u.email FROM assignments as a, users as u WHERE  a.task = ? AND a.user = u.id AND a.completed = 1";
+                db.all(sql2, [taskId], (err, rows) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        let completers = rows.map((row) => new User(row.uid, row.name, row.email, null));
+                        resolve(completers);
+                    }
+                });
+            }
         });
     });
 }

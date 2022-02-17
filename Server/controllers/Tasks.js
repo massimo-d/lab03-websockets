@@ -224,3 +224,21 @@ module.exports.completeTask = function completeTask(req, res, next) {
             }
         });
 };
+
+module.exports.completeUserTask = function completeUserTask(req, res, next) {
+    Tasks.completeUserTask(req.params.taskId, req.user)
+        .then(function(response) {
+            utils.writeJson(res, response, 204);
+        })
+        .catch(function(response) {
+            if(response == 403){
+                utils.writeJson(res, { errors: [{ 'param': 'Server', 'msg': 'The user is not an assignee of the task' }], }, 403);
+            }
+            else if (response == 404){
+                utils.writeJson(res, { errors: [{ 'param': 'Server', 'msg': 'The task does not exist.' }], }, 404);
+            }
+            else {
+                utils.writeJson(res, { errors: [{ 'param': 'Server', 'msg': response }], }, 500);
+            }
+        });
+};
