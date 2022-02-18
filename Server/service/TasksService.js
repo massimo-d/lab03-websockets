@@ -1,6 +1,7 @@
 'use strict';
 
 const Task = require('../components/task');
+const User = require('../components/user');
 const db = require('../components/db');
 var constants = require('../utils/constants.js');
 
@@ -82,7 +83,7 @@ exports.deleteTask = function(taskId, owner) {
 exports.getPublicTasks = function(req) {
     return new Promise((resolve, reject) => {
 
-        var sql = "SELECT t.id as tid, t.description, t.important, t.private, t.project, t.deadline,t.completed,c.total_rows FROM tasks t, (SELECT count(*) total_rows FROM tasks l WHERE l.private=0) c WHERE  t.private = 0 "
+        var sql = "SELECT t.id as tid, t.description, t.important, t.private, t.project, t.deadline,t.completed,t.completers, c.total_rows FROM tasks t, (SELECT count(*) total_rows FROM tasks l WHERE l.private=0) c WHERE  t.private = 0 "
         var limits = getPagination(req);
         if (limits.length != 0) sql = sql + " LIMIT ?,?";
         db.all(sql, limits, (err, rows) => {
@@ -131,7 +132,7 @@ exports.getPublicTasksTotal = function() {
  **/
 exports.getSingleTask = function(taskId,owner) {
     return new Promise((resolve, reject) => {
-        const sql1 = "SELECT id as tid, description, important, private, project, deadline, completed, owner FROM tasks WHERE id = ?";
+        const sql1 = "SELECT id as tid, description, important, private, project, deadline, completed, owner, completers FROM tasks WHERE id = ?";
         db.all(sql1, [taskId], (err, rows) => {
             if (err)
                 reject(err);
@@ -336,7 +337,7 @@ exports.updateSingleTask = function(task, taskId, owner) {
  * - null
  * 
  **/
- exports.completeUserTask = function(taskId, assignee) {
+ exports.completeUserTask = function(taskId, userId) {
     return new Promise((resolve, reject) => {
         const sql1 = "SELECT * FROM tasks t WHERE t.id = ?";
         db.all(sql1, [taskId], (err, rows) => {
@@ -345,28 +346,33 @@ exports.updateSingleTask = function(task, taskId, owner) {
             else if (rows.length === 0)
                 reject(404);
             else {
-                const sql2 = "UPDATE assignements SET completed = 1 a WHERE a.user = ? AND a.task = ?";
-                db.all(sql2, [assignee, taskId], (err, rows2) => {
+                console.log('query 1 OK ' + taskId + ' ' + userId)
+                const sql2 = "UPDATE assignments SET completed = 1 WHERE user = ? AND task = ?";
+                db.run(sql2, [userId, taskId], function(err) {
                     if (err)
                         reject(err);
-                    else if (rows2.length === 0)
-                        reject(403);
                     else {
-
-                        const sql3 = 'SELECT COUNT(*) as tot FROM assignements WHERE taskId = ? AND completed = 1';
+                        console.log('query 2 OK')
+                        const sql3 = 'SELECT COUNT(*) as tot FROM assignments WHERE task = ? AND completed = 1';
                         db.get(sql3, [taskId],(err, size) => {
                             if (err)
                                 reject(err);
                             // if number of completers is the one expected, set the status flag of the task to completed
-                            else if(rows[0].completers === size.tot){
-                                const sql4 = 'UPDATE tasks SET completed = 1 WHERE id = ?';
-                                db.run(sql4, [taskId], function(err) {
-                                if (err) {
-                                    reject(err);
-                                } else {
+                            else{ 
+                                console.log('query 3 OK ' + rows[0].completers + ' ' +  size.tot)
+                                if(rows[0].completers === size.tot){
+                                    const sql4 = 'UPDATE tasks SET completed = 1 WHERE id = ?';
+                                    db.run(sql4, [taskId], function(err1) {
+                                    if (err1) {
+                                        reject(err1);
+                                    } else {
+                                        resolve(null);
+                                    }
+                                    });
+                                }
+                                else{
                                     resolve(null);
                                 }
-                                });
                             }
                         })
                     } 
@@ -388,6 +394,7 @@ exports.getCompleters = function(taskId, owner){
             else if (rows.length === 0)
                 reject(404);
             else if(owner != rows[0].owner) {
+                console.log(owner + ' ' + rows[0].owner);
                 reject(403);
             }
             else {
@@ -426,5 +433,5 @@ const createTask = function(row) {
     const importantTask = (row.important === 1) ? true : false;
     const privateTask = (row.private === 1) ? true : false;
     const completedTask = (row.completed === 1) ? true : false;
-    return new Task(row.tid, row.description, importantTask, privateTask, row.deadline, row.project, completedTask, row.active);
+    return new Task(row.tid, row.description, importantTask, privateTask, row.deadline, row.project, completedTask, row.active, row.completers);
 }

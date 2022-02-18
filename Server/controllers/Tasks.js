@@ -226,7 +226,7 @@ module.exports.completeTask = function completeTask(req, res, next) {
 };
 
 module.exports.completeUserTask = function completeUserTask(req, res, next) {
-    Tasks.completeUserTask(req.params.taskId, req.user)
+    Tasks.completeUserTask(req.params.taskId, req.params.userId)
         .then(function(response) {
             utils.writeJson(res, response, 204);
         })
@@ -241,4 +241,25 @@ module.exports.completeUserTask = function completeUserTask(req, res, next) {
                 utils.writeJson(res, { errors: [{ 'param': 'Server', 'msg': response }], }, 500);
             }
         });
+};
+
+
+module.exports.getCompleters = function getCompleters(req, res, next) {
+
+    Tasks.getCompleters(req.params.taskId, req.user)
+    .then(function(response) {
+        utils.writeJson(res, {completers: response});
+    })
+    .catch(function(response) {
+        if(response == 403){
+            utils.writeJson(res, { errors: [{ 'param': 'Server', 'msg': 'The user is not the owner of the task' }], }, 403);
+        }
+        else if (response == 404){
+            utils.writeJson(res, { errors: [{ 'param': 'Server', 'msg': 'The task does not exist.' }], }, 404);
+        }
+        else {
+            utils.writeJson(res, { errors: [{ 'param': 'Server', 'msg': response }], }, 500);
+        }
+    });
+           
 };

@@ -1,5 +1,5 @@
 class Task{    
-    constructor(id, description, important, privateTask, deadline, project, completed, active) {
+    constructor(id, description, important, privateTask, deadline, project, completed, active, completers) {
         if(id)
             this.id = id;
 
@@ -15,6 +15,7 @@ class Task{
         
         this.completed = completed || false;
         this.active = active;
+        this.completers = completers;
 
         var selfLink = "/api/tasks/" + this.id;
         this.self =  selfLink;
