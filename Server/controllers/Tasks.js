@@ -237,6 +237,9 @@ module.exports.completeUserTask = function completeUserTask(req, res, next) {
             else if (response == 404){
                 utils.writeJson(res, { errors: [{ 'param': 'Server', 'msg': 'The task does not exist.' }], }, 404);
             }
+            else if (response == 400){
+                utils.writeJson(res, { errors: [{ 'param': 'Server', 'msg': 'The user has already completed the task' }], }, 400);
+            }
             else {
                 utils.writeJson(res, { errors: [{ 'param': 'Server', 'msg': response }], }, 500);
             }

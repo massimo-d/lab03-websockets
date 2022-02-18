@@ -342,7 +342,7 @@ paths:
         description: >-
           The data of the user who wants to perform log in or log out. For login
           the structure must contain email and password. For logout, the
-          structure must contain the user id.
+          structure must contain the email.
         content:
           application/json:
             schema:
