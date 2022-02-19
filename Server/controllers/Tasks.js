@@ -207,26 +207,26 @@ module.exports.getAssignedTasks = function getAssignedTasks(req, res, next) {
 };
 
 
+// module.exports.completeTask = function completeTask(req, res, next) {
+//     Tasks.completeTask(req.params.taskId, req.user)
+//         .then(function(response) {
+//             utils.writeJson(res, response, 204);
+//         })
+//         .catch(function(response) {
+//             if(response == 403){
+//                 utils.writeJson(res, { errors: [{ 'param': 'Server', 'msg': 'The user is not an assignee of the task' }], }, 403);
+//             }
+//             else if (response == 404){
+//                 utils.writeJson(res, { errors: [{ 'param': 'Server', 'msg': 'The task does not exist.' }], }, 404);
+//             }
+//             else {
+//                 utils.writeJson(res, { errors: [{ 'param': 'Server', 'msg': response }], }, 500);
+//             }
+//         });
+// };
+
 module.exports.completeTask = function completeTask(req, res, next) {
     Tasks.completeTask(req.params.taskId, req.user)
-        .then(function(response) {
-            utils.writeJson(res, response, 204);
-        })
-        .catch(function(response) {
-            if(response == 403){
-                utils.writeJson(res, { errors: [{ 'param': 'Server', 'msg': 'The user is not an assignee of the task' }], }, 403);
-            }
-            else if (response == 404){
-                utils.writeJson(res, { errors: [{ 'param': 'Server', 'msg': 'The task does not exist.' }], }, 404);
-            }
-            else {
-                utils.writeJson(res, { errors: [{ 'param': 'Server', 'msg': response }], }, 500);
-            }
-        });
-};
-
-module.exports.completeUserTask = function completeUserTask(req, res, next) {
-    Tasks.completeUserTask(req.params.taskId, req.params.userId)
         .then(function(response) {
             utils.writeJson(res, response, 204);
         })
@@ -251,7 +251,7 @@ module.exports.getSelectors = function getSelectors(req, res, next) {
 
     Tasks.getSelectors(req.params.taskId, req.user)
     .then(function(response) {
-        utils.writeJson(res, {selectors: response});
+        utils.writeJson(res, response);
     })
     .catch(function(response) {
         if(response == 403){
@@ -271,7 +271,7 @@ module.exports.getCompleters = function getCompleters(req, res, next) {
 
     Tasks.getCompleters(req.params.taskId, req.user)
     .then(function(response) {
-        utils.writeJson(res, {completers: response});
+        utils.writeJson(res, response);
     })
     .catch(function(response) {
         if(response == 403){

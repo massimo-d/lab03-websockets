@@ -341,7 +341,7 @@ exports.updateSingleTask = function (task, taskId, owner) {
  * - null
  * 
  **/
-exports.completeUserTask = function (taskId, userId) {
+exports.completeTask = function (taskId, userId) {
     return new Promise((resolve, reject) => {
         const sql1 = "SELECT * FROM tasks t WHERE t.id = ?";
         db.all(sql1, [taskId], (err, rows) => {

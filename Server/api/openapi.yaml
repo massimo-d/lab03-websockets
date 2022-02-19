@@ -28,10 +28,8 @@ tags:
     description: >-
       resource representing one user to which the task with ID taskID is
       assigned
-  - name: 'tasks/{taskId}/assignees/{userId}/completion'
-    description: resource representing the completion of the task taskId for the user userID
   - name: 'tasks/{taskId}/completion'
-    description: resource representing the completion of the the entire task with ID taskID
+    description: resource representing the completion of the the task with ID taskID performed by the logged User.
   - name: tasks/assignments
     description: resource representing the assignments of tasks to users
   - name: users
@@ -538,7 +536,7 @@ paths:
         - cookieAuth: []
       summary: Complete a task
       description: >-
-        The task with ID taskId is marked as completed. This operation can only be performed by an assignee of the task.
+        The task with ID taskId is marked as completed for the logged user. This operation can only be performed by an assignee of the task.
       operationId: completeTask
       parameters:
         - name: taskId
@@ -751,6 +749,9 @@ components:
           default: false
         owner: 
           $ref: '#/components/schemas/User'
+        completers:
+          type: integer
+          description: number of assignees of the task that have to complete their task assignement so that the entire task will be completed
         assignees:
           type: array
           items:
