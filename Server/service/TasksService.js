@@ -149,7 +149,7 @@ exports.getSingleTask = function (taskId, user) {
                         reject(403);
                     }
                     else {
-                        var task = createTask(rows[0]); 
+                        var task = createTask(rows[0]);
                         delete task.completers; //without completers, since the user is an assignee but not the owner of the task
                         resolve(task);
                     }
@@ -276,7 +276,7 @@ exports.getAssignedTasksTotal = function (req) {
 exports.updateSingleTask = function (task, taskId, owner) {
     return new Promise((resolve, reject) => {
 
-        const sql1 = "SELECT owner FROM tasks t WHERE t.id = ?";
+        const sql1 = "SELECT owner, completers FROM tasks t WHERE t.id = ?";
         db.all(sql1, [taskId], (err, rows) => {
             if (err)
                 reject(err);
@@ -286,46 +286,68 @@ exports.updateSingleTask = function (task, taskId, owner) {
                 reject(403);
             }
             else {
-                const sql2 = 'DELETE FROM assignments WHERE task = ?';
-                db.run(sql2, [taskId], (err) => {
-                    if (err)
+                var sql2 = 'UPDATE tasks SET description = ?, completed = 0';
+                var parameters = [task.description];
+                if (task.important != undefined) {
+                    sql2 = sql2.concat(', important = ?');
+                    parameters.push(task.important);
+                }
+                if (task.private != undefined) {
+                    sql2 = sql2.concat(', private = ?');
+                    parameters.push(task.private);
+                }
+                if (task.project != undefined) {
+                    sql2 = sql2.concat(', project = ?');
+                    parameters.push(task.project);
+                }
+                if (task.deadline != undefined) {
+                    sql2 = sql2.concat(', deadline = ?');
+                    parameters.push(task.deadline);
+                }
+                if (task.completers != undefined) {
+                    sql2 = sql2.concat(', completers = ?');
+                    parameters.push(task.completers);
+                }
+                sql2 = sql2.concat(' WHERE id = ?');
+                parameters.push(taskId);
+
+                db.run(sql2, parameters, function (err) {
+                    if (err) {
                         reject(err);
-                    else {
-                        var sql3 = 'UPDATE tasks SET description = ?, completed = 0';
-                        var parameters = [task.description];
-                        if (task.important != undefined) {
-                            sql3 = sql3.concat(', important = ?');
-                            parameters.push(task.important);
-                        }
-                        if (task.private != undefined) {
-                            sql3 = sql3.concat(', private = ?');
-                            parameters.push(task.private);
-                        }
-                        if (task.project != undefined) {
-                            sql3 = sql3.concat(', project = ?');
-                            parameters.push(task.project);
-                        }
-                        if (task.deadline != undefined) {
-                            sql3 = sql3.concat(', deadline = ?');
-                            parameters.push(task.deadline);
-                        }
-                        if (task.completers != undefined){
-                            sql3 = sql3.concat(', completers = ?');
-                            parameters.push(task.completers);
-                        }
-                        sql3 = sql3.concat(' WHERE id = ?');
-                        parameters.push(taskId);
-
-                        db.run(sql3, parameters, function (err) {
-                            if (err) {
-                                reject(err);
-                            } else {
-                                resolve(null);
-                            }
-
-                        })
+                    } 
+                    else if(task.completers <= 0){
+                        reject(400)
                     }
+                    else if(task.completers !== undefined && task.completers !== rows[0].completers){
+                            const sql3 = 'SELECT COUNT(*) as tot FROM assignments WHERE task = ? AND completed = 1';
+                            db.get(sql3, [taskId], (err, size) => {
+                                if (err)
+                                    reject(err);
+                                else {
+                                    if (task.completers <= size.tot) {
+                                        const sql4 = 'UPDATE tasks SET completed = 1 WHERE id = ?';
+                                        db.run(sql4, [taskId], function (err1) {
+                                            if (err1) {
+                                                reject(err1);
+                                            } else {
+                                                resolve(null);
+                                            }
+                                        });
+                                    }
+                                    else
+                                        resolve(null);
+                                }
+                            resolve(null);
+
+                        });
+                        
+                    }
+                    else 
+                        resolve(null);
+
                 })
+
+
             }
         });
     });
@@ -359,7 +381,7 @@ exports.completeTask = function (taskId, userId) {
                         reject(err);
                     else if (rows2.length === 0)
                         reject(403);
-                    else if(rows2[0].completed === 1) 
+                    else if (rows2[0].completed === 1)
                         reject(400);
                     else {
                         const sql3 = "UPDATE assignments SET completed = 1 WHERE user = ? AND task = ?";

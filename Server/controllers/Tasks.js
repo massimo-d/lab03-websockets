@@ -48,6 +48,9 @@ module.exports.updateSingleTask = function updateSingleTask(req, res, next) {
             else if (response == 404){
                 utils.writeJson(res, { errors: [{ 'param': 'Server', 'msg': 'The task does not exist.' }], }, 404);
             }
+            else if (response == 400){
+                utils.writeJson(res, { errors: [{ 'param': 'Server', 'msg': 'Completers property must be greater than 0' }], }, 400);
+            }
             else {
                 utils.writeJson(res, { errors: [{ 'param': 'Server', 'msg': response }], }, 500);
             }
