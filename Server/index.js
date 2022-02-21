@@ -55,16 +55,16 @@ passport.use(new JwtStrategy(opts, function(jwt_payload, done) {
 app.post('/api/users/authenticator', userController.authenticateUser); // CHECKED localhost:3000/api/users/authenticator?type=login
 app.get('/api/tasks/public', taskController.getPublicTasks); //CHECKED
 //modified
-app.post('/api/tasks', passport.authenticate('jwt', { session: false }), validate({ body: taskSchema }), taskController.addTask);
+app.post('/api/tasks', passport.authenticate('jwt', { session: false }), validate({ body: taskSchema }), taskController.addTask); //CHECKED
 //modified
 app.get('/api/tasks/:taskId', passport.authenticate('jwt', { session: false }), taskController.getSingleTask); //CHECKED
 //tocheck (in theory no)
-app.delete('/api/tasks/:taskId', passport.authenticate('jwt', { session: false }), taskController.deleteTask);
+app.delete('/api/tasks/:taskId', passport.authenticate('jwt', { session: false }), taskController.deleteTask); //CHECKED
 //modified
-app.put('/api/tasks/:taskId', passport.authenticate('jwt', { session: false }), validate({ body: taskSchema }), taskController.updateSingleTask);
+app.put('/api/tasks/:taskId', passport.authenticate('jwt', { session: false }), validate({ body: taskSchema }), taskController.updateSingleTask); //CHECKED
 //modified
-app.put('/api/tasks/:taskId/completion', passport.authenticate('jwt', { session: false }), taskController.completeTask);
-app.post('/api/tasks/:taskId/assignees', passport.authenticate('jwt', { session: false }), validate({ body: userSchema }), assignmentController.assignTaskToUser);
+app.put('/api/tasks/:taskId/completion', passport.authenticate('jwt', { session: false }), taskController.completeTask); //CHECKED
+app.post('/api/tasks/:taskId/assignees', passport.authenticate('jwt', { session: false }), validate({ body: userSchema }), assignmentController.assignTaskToUser); //CHECKED
 app.get('/api/tasks/:taskId/assignees', passport.authenticate('jwt', { session: false }), assignmentController.getUsersAssigned); //CHECKED
 app.delete('/api/tasks/:taskId/assignees/:userId', passport.authenticate('jwt', { session: false }), assignmentController.removeUser);
 app.post('/api/tasks/assignments', passport.authenticate('jwt', { session: false }), assignmentController.assignAutomatically);
@@ -72,7 +72,7 @@ app.get('/api/users', passport.authenticate('jwt', { session: false }), userCont
 app.get('/api/users/:userId', passport.authenticate('jwt', { session: false }), userController.getSingleUser); //CHECKED
 app.get('/api/users/:userId/tasks/created', passport.authenticate('jwt', { session: false }), taskController.getOwnedTasks); //CHECKED
 app.get('/api/users/:userId/tasks/assigned', passport.authenticate('jwt', { session: false }), taskController.getAssignedTasks); //CHECKED
-app.put('/api/users/:userId/selection', passport.authenticate('jwt', { session: false }), assignmentController.selectTask);
+app.put('/api/users/:userId/selection', passport.authenticate('jwt', { session: false }), assignmentController.selectTask); //CHECKED
 
 // app.put('/api/tasks/:taskId/assignees/:userId/completion', passport.authenticate('jwt', { session: false }), taskController.completeTask); //CHECKED
 
