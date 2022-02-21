@@ -17,12 +17,12 @@ var constants = require('../utils/constants.js');
  **/
 exports.addTask = function (task, owner) {
     return new Promise((resolve, reject) => {
-        const sql = 'INSERT INTO tasks(description, important, private, project, deadline, completed, owner) VALUES(?,?,?,?,?,?, ?)';
-        db.run(sql, [task.description, task.important, task.private, task.project, task.deadline, task.completed, owner], function (err) {
+        const sql = 'INSERT INTO tasks(description, important, private, project, deadline, completed, owner, completers) VALUES(?,?,?,?,?,?,?,?)';
+        db.run(sql, [task.description, task.important, task.private, task.project, task.deadline, task.completed, owner, task.completers], function (err) {
             if (err) {
                 reject(err);
             } else {
-                var createdTask = new Task(this.lastID, task.description, task.important, task.private, task.deadline, task.project, task.completed, task.active);
+                var createdTask = new Task(this.lastID, task.description, task.important, task.private, task.deadline, task.project, task.completed, task.active, task.completers);
                 resolve(createdTask);
             }
         });
@@ -130,7 +130,7 @@ exports.getPublicTasksTotal = function () {
  * - the requested task
  * 
  **/
-exports.getSingleTask = function (taskId, owner) {
+exports.getSingleTask = function (taskId, user) {
     return new Promise((resolve, reject) => {
         const sql1 = "SELECT id as tid, description, important, private, project, deadline, completed, owner, completers FROM tasks WHERE id = ?";
         db.all(sql1, [taskId], (err, rows) => {
@@ -138,18 +138,19 @@ exports.getSingleTask = function (taskId, owner) {
                 reject(err);
             else if (rows.length === 0)
                 reject(404);
-            else if (rows[0].owner == owner) {
-                var task = createTask(rows[0]);
+            else if (rows[0].owner == user) {
+                var task = createTask(rows[0]); //with completers
                 resolve(task);
             }
             else {
                 const sql2 = "SELECT t.id as total FROM tasks as t, assignments as a WHERE t.id = a.task AND t.id = ? AND a.user = ? ";
-                db.all(sql2, [taskId, owner], (err, rows2) => {
+                db.all(sql2, [taskId, user], (err, rows2) => {
                     if (rows2.length === 0) {
                         reject(403);
                     }
                     else {
-                        var task = createTask(rows[0]);
+                        var task = createTask(rows[0]); //without completers
+                        delete task.completers;
                         resolve(task);
                     }
                 });
@@ -170,7 +171,7 @@ exports.getSingleTask = function (taskId, owner) {
  **/
 exports.getOwnedTasks = function (req) {
     return new Promise((resolve, reject) => {
-        var sql = "SELECT t.id as tid, t.description, t.important, t.private, t.project, t.deadline,t.completed FROM tasks as t WHERE t.owner = ?";
+        var sql = "SELECT t.id as tid, t.description, t.important, t.private, t.project, t.deadline,t.completed, t.completers FROM tasks as t WHERE t.owner = ?";
         var limits = getPagination(req);
         if (limits.length != 0) sql = sql + " LIMIT ?,?";
         limits.unshift(req.user);

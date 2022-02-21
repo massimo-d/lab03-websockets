@@ -54,10 +54,15 @@ passport.use(new JwtStrategy(opts, function(jwt_payload, done) {
 
 app.post('/api/users/authenticator', userController.authenticateUser); // CHECKED localhost:3000/api/users/authenticator?type=login
 app.get('/api/tasks/public', taskController.getPublicTasks); //CHECKED
+//modified
 app.post('/api/tasks', passport.authenticate('jwt', { session: false }), validate({ body: taskSchema }), taskController.addTask);
+//modified
 app.get('/api/tasks/:taskId', passport.authenticate('jwt', { session: false }), taskController.getSingleTask); //CHECKED
+//tocheck (in theory no)
 app.delete('/api/tasks/:taskId', passport.authenticate('jwt', { session: false }), taskController.deleteTask);
+//modified
 app.put('/api/tasks/:taskId', passport.authenticate('jwt', { session: false }), validate({ body: taskSchema }), taskController.updateSingleTask);
+//modified
 app.put('/api/tasks/:taskId/completion', passport.authenticate('jwt', { session: false }), taskController.completeTask);
 app.post('/api/tasks/:taskId/assignees', passport.authenticate('jwt', { session: false }), validate({ body: userSchema }), assignmentController.assignTaskToUser);
 app.get('/api/tasks/:taskId/assignees', passport.authenticate('jwt', { session: false }), assignmentController.getUsersAssigned); //CHECKED
@@ -69,8 +74,11 @@ app.get('/api/users/:userId/tasks/created', passport.authenticate('jwt', { sessi
 app.get('/api/users/:userId/tasks/assigned', passport.authenticate('jwt', { session: false }), taskController.getAssignedTasks); //CHECKED
 app.put('/api/users/:userId/selection', passport.authenticate('jwt', { session: false }), assignmentController.selectTask);
 
-app.put('/api/tasks/:taskId/assignees/:userId/completion', passport.authenticate('jwt', { session: false }), taskController.completeUserTask); //CHECKED
+// app.put('/api/tasks/:taskId/assignees/:userId/completion', passport.authenticate('jwt', { session: false }), taskController.completeTask); //CHECKED
+
+//added
 app.get('/api/tasks/:taskId/completers', passport.authenticate('jwt', { session: false }), taskController.getCompleters); //CHECKED
+//added
 app.get('/api/tasks/:taskId/selectors', passport.authenticate('jwt', { session: false }), taskController.getSelectors); //CHECKED
 
 // Error handlers for validation and authentication errors
