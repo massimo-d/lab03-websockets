@@ -83,7 +83,7 @@ exports.deleteTask = function (taskId, owner) {
 exports.getPublicTasks = function (req) {
     return new Promise((resolve, reject) => {
 
-        var sql = "SELECT t.id as tid, t.description, t.important, t.private, t.project, t.deadline,t.completed,t.completers, c.total_rows FROM tasks t, (SELECT count(*) total_rows FROM tasks l WHERE l.private=0) c WHERE  t.private = 0 "
+        var sql = "SELECT t.id as tid, t.description, t.important, t.private, t.project, t.deadline,t.completed, c.total_rows FROM tasks t, (SELECT count(*) total_rows FROM tasks l WHERE l.private=0) c WHERE  t.private = 0 "
         var limits = getPagination(req);
         if (limits.length != 0) sql = sql + " LIMIT ?,?";
         db.all(sql, limits, (err, rows) => {
@@ -149,8 +149,8 @@ exports.getSingleTask = function (taskId, user) {
                         reject(403);
                     }
                     else {
-                        var task = createTask(rows[0]); //without completers
-                        delete task.completers;
+                        var task = createTask(rows[0]); 
+                        delete task.completers; //without completers, since the user is an assignee but not the owner of the task
                         resolve(task);
                     }
                 });
