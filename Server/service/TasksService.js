@@ -18,7 +18,7 @@ var constants = require('../utils/constants.js');
 exports.addTask = function (task, owner) {
     return new Promise((resolve, reject) => {
         const sql = 'INSERT INTO tasks(description, important, private, project, deadline, completed, owner, completers) VALUES(?,?,?,?,?,?,?,?)';
-        db.run(sql, [task.description, task.important, task.private, task.project, task.deadline, false, owner, task.completers ? task.completers : 1], function (err) {
+        db.run(sql, [task.description, task.important, task.private, task.project, task.deadline, false, owner, task.completers ? task.completers : 1 ], function (err) {
             if (err) {
                 reject(err);
             } else {

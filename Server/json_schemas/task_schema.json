@@ -45,6 +45,12 @@
       "description": "this property is set to true if the task is marked as completed, false otherwise (default value: false)",
       "default": "false"
     },
+    "completers": {
+      "type": "integer",
+      "description": "number of users that have to complete the task in order to set the completed status flag of the entire task to true",
+      "default": 1,
+      "minimum": 1
+    },
     "owner":{
       "$ref": "./user_schema.json#"
     },
@@ -53,10 +59,6 @@
       "items": {
           "$ref": "./user_schema.json#"
       }
-    },
-    "completers": {
-      "type": "integer",
-      "description": "number of users that have to complete the task in order to set the completed status flag of the entire task to true"
     },
     "self": {
       "type": "string",

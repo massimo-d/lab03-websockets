@@ -28,8 +28,14 @@ tags:
     description: >-
       resource representing one user to which the task with ID taskID is
       assigned
+  - name: 'tasks/{taskId}/selectors'
+    description: >-
+      resource representing the users who have selected the task with ID taskID as active
+  - name: 'tasks/{taskId}/completers'
+    description: >-
+      resource representing the users who have completed the task with ID taskID
   - name: 'tasks/{taskId}/completion'
-    description: resource representing the completion of the the task with ID taskID performed by the logged User.
+    description: resource representing the completion of the the task with ID taskID performed by the authenticated User.
   - name: tasks/assignments
     description: resource representing the assignments of tasks to users
   - name: users
@@ -487,35 +493,70 @@ paths:
         '500':
           description: Internal Server Error
           content: {}
-  '/api/tasks/{taskId}/assignees/{userId}/completion':
-    put:
+  '/api/tasks/{taskId}/selectors':
+    get:
       tags:
-        - 'tasks/{taskId}/assignees/{userId}/completion'
+        - 'tasks/{taskId}/selectors'
       security:
         - cookieAuth: []
-      summary: Complete a task for a user
-      description: >-
-        The task with ID taskId is marked as completed for user UserId. This operation can only be performed by an assignee of the task.
-      operationId: completeUserTask
+      summary: Retreve the users who have selected the task
+      description: The users who have selected the task with ID taskId as active are retrieved. This operation can be performed only by the owner.
+      operationId: getSelectors
       parameters:
         - name: taskId
           in: path
-          description: ID of the task
-          required: true
-          schema:
-            type: integer
-            format: int64
-        - name: userId
-          in: path
-          description: ID of the user
+          description: ID of the task to retrieve
           required: true
           schema:
             type: integer
             format: int64
       responses:
-        '204':
-          description: Successful operation - No Content
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
           content: {}
+        '403':
+          description: Forbidden
+          content: {}
+        '404':
+          description: Not Found
+          content: {}
+        '500':
+          description: Internal Server Error
+          content: {}
+  '/api/tasks/{taskId}/completers':
+    get:
+      tags:
+        - 'tasks/{taskId}/completers'
+      security:
+        - cookieAuth: []
+      summary: Retreve the users who have completed the task
+      description: The users who have completed the task with ID taskId are retrieved. This operation can be performed only by the owner.
+      operationId: getCompleters
+      parameters:
+        - name: taskId
+          in: path
+          description: ID of the task to retrieve
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
         '401':
           description: Unauthorized
           content: {}
@@ -534,9 +575,9 @@ paths:
         - 'tasks/{taskId}/completion'
       security:
         - cookieAuth: []
-      summary: Complete a task
+      summary: Authenticated user completes a task
       description: >-
-        The task with ID taskId is marked as completed for the logged user. This operation can only be performed by an assignee of the task.
+        The task with ID taskId is marked as completed for the authenticated user. This operation can only be performed by an assignee of the task. After this operation the completion status of the entire task will be true if the 'completers' property of that task is equal to the number of assignees who have completed that task. 
       operationId: completeTask
       parameters:
         - name: taskId
